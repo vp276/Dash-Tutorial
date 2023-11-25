@@ -101,7 +101,7 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
 #callback for top row
 @callback(
     [Output(component_id='Factor-Barplot', component_property='figure'),
-    Output(component_id='Age-Barplot', component_property='figure')],
+    Output(component_id='Age-Plot', component_property='figure')],
     [Input('BP-Filter', 'value'),
     Input('Sex-Filter', 'value'),
     Input('Anaemia-Filter', 'value')]
@@ -151,39 +151,6 @@ def update_output_div(bp, sex, anaemia):
 
 
 
-#callback for second row
-@callback(
-    [Output(component_id='confusion-matrix', component_property='figure'),
-    Output(component_id='history-plot', component_property='figure')],
-    Input('City-Filter', 'value')
-)
-def update_model(value):
-
-    #Making copy of df
-    confusion = confusion_df[['y_true', 'y_pred']]
-    history_df = train_history_df 
-
-    #Aggregating confusion dataframe and plotting
-    agg_confusion = confusion_matrix(confusion['y_true'], confusion['y_pred'])
-    confusion_fig = px.imshow(agg_confusion, 
-                              labels=dict(x="Predicted Value", 
-                                y="True Value", color="Prediction"),
-                                x=['Graffiti', 'No Graffiti'],
-                                y=['Graffiti', 'No Graffiti'], 
-                                aspect="auto",
-                                text_auto=True,
-                                title = "Confusion Matrix - Predicted vs Actual Values")
-
-    #Plotting history data
-    history_df['Epoch'] = history_df.index
-    history_df = pd.melt(history_df, id_vars='Epoch', value_vars=['accuracy', 'val_accuracy'])
-    history_fig = px.line(history_df, x="Epoch", y="value", color='variable', 
-                          title="Test Versus Train Accuracy across Epochs")
-    
-    return confusion_fig, history_fig
-
-
-
 # Run the app
 if __name__ == '__main__':
-    dash_app.run_server(debug=False)
+    dash_app.run_server(debug=True)
