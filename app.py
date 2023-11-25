@@ -1,5 +1,3 @@
-import os
-
 # Importing packages
 import dash
 from dash import Dash, dcc, html, dcc, Input, Output, ctx, State, callback
@@ -11,29 +9,17 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 
-#loading graffiti data
-base_path = os.path.dirname(os.path.dirname(__file__))
-mapkey = open(base_path + "\\mapbox_token.txt", "r").read()
-file_name = 'predictions.csv'
-total_path = base_path + '\\Data\\Image_Predictions\\' + file_name
+#loading Dataset
+base_path = os.path.dirname(__file__)
+file_name = 'heart_failure_clinical_records_dataset.csv'
+total_path = base_path + '\\Data\\' + file_name
 df = pd.read_csv(total_path)
-px.set_mapbox_access_token(mapkey)
+
 
 #Calculating aggregated dataset
-agg_predictions = df[['City', 'Predicted_val']].groupby(['City']).mean().reset_index()
-print(agg_predictions.head(10))
-latitude = []
-longitude = []
-for city in agg_predictions['City']:
-    latitude.append(df[df['City']==city]['Latitude'].mean())
-    longitude.append(df[df['City']==city]['Longitude'].mean())
-agg_predictions['Latitude'] = latitude
-agg_predictions['Longitude'] = longitude
-    
+
 
 #Loading training data
-train_history_df = pd.read_csv(base_path + '\\Development\\Model\\performance\\history.csv')
-confusion_df = pd.read_csv(base_path + '\\Development\\Model\\performance\\Validation_Performance.csv')
 
 colors = {'background': '#A5D8DD',
         'text': '#7FDBFF'}
@@ -46,22 +32,29 @@ app = dash_app.server
 dash_app.layout = html.Div(style={'backgroundColor': colors['background']}, 
     children =[
         html.Div(children= [
-             html.H1('Graffiti Frequency in US Cities'),
-             dcc.Markdown('A comprehensive tool for examining graffiti rates in US cities using a convolutional neural network'),
+             html.H1('Heart Failure Prediction'),
+             dcc.Markdown('A comprehensive tool for examining factors impacting heart failure'),
             
             #Filters
              html.Div(children = [ 
-                html.Label('City'),
+                html.Label('Blood Pressure'),
                 dcc.Dropdown(
-                    id = 'City-Filter',
-                    options = [{"label": i, "value": i} for i in df['City'].drop_duplicates()] + 
+                    id = 'BP-Filter',
+                    options = [{"label": i, "value": i} for i in df['high_blood_pressure'].drop_duplicates()] + 
                                 [{"label": "Select All", "value": "all_values"}],
                     value = "all_values"),
 
-                html.Label('Prediction'),
+                html.Label('Sex'),
                 dcc.Dropdown(
-                    id = 'Prediction-Filter',
-                    options = [{"label": i, "value": i} for i in df['Predicted_val'].drop_duplicates()] + 
+                    id = 'Sex-Filter',
+                    options = [{"label": i, "value": i} for i in df['sex'].drop_duplicates()] + 
+                                [{"label": "Select All", "value": "all_values"}],
+                    value = "all_values"),
+
+                html.Label('Anaemia'),
+                dcc.Dropdown(
+                    id = 'Anaemia-Filter',
+                    options = [{"label": i, "value": i} for i in df['anaemia'].drop_duplicates()] + 
                                 [{"label": "Select All", "value": "all_values"}],
                     value = "all_values")
              ],style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'}),
@@ -71,17 +64,14 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
 
                 #First column
                 html.Div(children = [
-                    #Back button for if we've zoomed in
-                    dbc.Button('🡠', id='back-button', outline=True, size="sm",
-                        className='mt-2 ml-2 col-1', style={'display': 'none'}),
 
-                    dcc.Graph(id = 'City-Barplot',
+                    dcc.Graph(id = 'Factor-Barplot',
                             figure={})
                     ],style={'width': '49%', 'display': 'inline-block'}),
 
                 #Second column
                 html.Div([
-                    dcc.Graph(id = 'Geographic-Plot',
+                    dcc.Graph(id = 'Age-Plot',
                             figure={})
                 ],style={'width': '49%', 'display': 'inline-block','position': 'fixed'})
 
@@ -89,35 +79,16 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
             ], className = 'row'),
             html.Br(),
 
-            #Second row of graphs
-            html.Div([
-
-                #First column
-                html.Div(children = [
-                    dcc.Graph(id = 'confusion-matrix',
-                            figure={})
-                    ],style={'width': '49%', 'display': 'inline-block'}),
-
-                #Second column
-                html.Div([
-                    dcc.Graph(id = 'history-plot',
-                            figure={})
-                ],style={'width': '49%', 'display': 'inline-block'})
-
-
-            ], className = 'row'),
-            html.Br(),
-
-
             html.Div([
                 html.H3('Data Sources:'),
                 html.Div([
                     html.Div(children = [
                         html.Div([
-                            dcc.Markdown('Streetview Data: ')
+                            dcc.Markdown('Dataset: ')
                         ], style={'display': 'inline-block'}),
                         html.Div([
-                            html.A("Google Streetview API", href='https://developers.google.com/maps/documentation/streetview/overview', target="_blank")
+                            html.A("Kaggle Dataset", 
+                                   href='https://www.kaggle.com/datasets/andrewmvd/heart-failure-clinical-data?select=heart_failure_clinical_records_dataset.csv', target="_blank")
                         ], style={'display': 'inline-block'})
                     ], className="row"
                 )
@@ -129,64 +100,54 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
 
 #callback for top row
 @callback(
-    [Output(component_id='Geographic-Plot', component_property='figure'),
-    Output(component_id='City-Barplot', component_property='figure'),
-    Output('back-button', 'style')],
-    [Input('City-Filter', 'value'),
-    Input('Prediction-Filter', 'value'),
-    Input('back-button', 'n_clicks'),
-    Input('City-Barplot', 'clickData')]#Backbutton for returning
+    [Output(component_id='Factor-Barplot', component_property='figure'),
+    Output(component_id='Age-Barplot', component_property='figure')],
+    [Input('BP-Filter', 'value'),
+    Input('Sex-Filter', 'value'),
+    Input('Anaemia-Filter', 'value')]
 )
-def update_output_div(cities, predictions, n_clicks, clickData):
+def update_output_div(bp, sex, anaemia):
 
     #Checking which input was fired
     ctx = dash.callback_context
 
     #Making copy of DF
     filtered_df = df
-    agged_df = agg_predictions
 
-    city_list = []
-    predicted_list = []
-    #Filtering for cities
-    if cities== "all_values":
-        city_list = filtered_df['City'].drop_duplicates()
-    else:
-        city_list = [cities]
+    bp_list, sex_list,anaemia_list  = [], [], []
 
-    #Filtering for prediction outcomes
-    if predictions== "all_values":
-        predicted_list = filtered_df['Predicted_val'].drop_duplicates()
+    #Filtering for blood pressure
+    if bp== "all_values":
+        bp_list = filtered_df['high_blood_pressure'].drop_duplicates()
     else:
-        predicted_list = [predictions]
+        bp_list = [bp]
+
+    #Filtering for sex
+    if sex== "all_values":
+        sex_list = filtered_df['sex'].drop_duplicates()
+    else:
+        sex_list = [sex]
+    
+    #Filtering for Anaemia
+    if anaemia== "all_values":
+        anaemia_list = filtered_df['anaemia'].drop_duplicates()
+    else:
+        anaemia_list = [anaemia]
     
     #Applying filters to dataframe
-    filtered_df = filtered_df[(filtered_df['City'].isin(city_list)) &
-                              (filtered_df['Predicted_val'].isin(predicted_list))]
+    filtered_df = filtered_df[(filtered_df['high_blood_pressure'].isin(bp_list)) &
+                              (filtered_df['sex'].isin(sex_list)) &
+                               (filtered_df['anaemia'].isin(anaemia_list))]
 
-    #Checking which input was fired for graph drilldown
-    trigger_id = ctx.triggered[0]['prop_id'].split(".")[0]
-    back_return = {'display':'none'}
 
-    #If barplot has been triggered
-    if trigger_id == 'City-Barplot':
-        back_return = {'display':'block'}
-        selected_city = clickData['points'][0]['x']
-        filtered_df = filtered_df[filtered_df['City']==selected_city]
-        map_fig = px.scatter_mapbox(filtered_df, 
-                            lat="Latitude", lon="Longitude", color="Predicted_val",
-                            hover_data=["City"],
-                            zoom = 2)
-    else:
-        map_fig = px.scatter_mapbox(agged_df, 
-                            lat="Latitude", lon="Longitude", color="Predicted_val", size = 'Predicted_val',
-                            hover_data=["City", "Predicted_val"],
-                            zoom = 2)
+
+    factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes')
+                            
     
-    barplot_fig = px.bar(filtered_df[['City', 'Predicted_val']].groupby(['City']).sum().reset_index(),
-                                      x="City", y="Predicted_val", title = "Graffiti Occurences by City")
+    age_fig = px.scatter(filtered_df,
+                                      x="age", y="platelets", color = "sex", title = "Scatterplot")
     
-    return map_fig, barplot_fig, back_return
+    return factor_fig, age_fig
 
 
 
