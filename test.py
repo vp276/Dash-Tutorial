@@ -77,15 +77,37 @@ sidebar = html.Div(
     ],
     style=SIDEBAR_STYLE
 )
-app.layout = html.Div([
-    sidebar,
-    html.Div([
-    html.Label('Blood Pressure'),
+filters = dbc.Row([
+                html.Div(children= [
+                html.H1('Heart Failure Prediction'),
+                dcc.Markdown('A comprehensive tool for examining factors impacting heart failure'),
+
+                html.Label('Blood Pressure'),
                 dcc.Dropdown(
                     id = 'BP-Filter',
                     options = [{"label": i, "value": i} for i in df1['high_blood_pressure'].drop_duplicates()] + 
                                 [{"label": "Select All", "value": "all_values"}],
-                    value = "all_values")]),
+                    value = "all_values"),
+
+                html.Label('Sex'),
+                dcc.Dropdown(
+                    id = 'Sex-Filter',
+                    options = [{"label": i, "value": i} for i in df1['sex'].drop_duplicates()] + 
+                                [{"label": "Select All", "value": "all_values"}],
+                    value = "all_values"),
+
+                html.Label('Anaemia'),
+                dcc.Dropdown(
+                    id = 'Anaemia-Filter',
+                    options = [{"label": i, "value": i} for i in df1['anaemia'].drop_duplicates()] + 
+                                [{"label": "Select All", "value": "all_values"}],
+                    value = "all_values")],
+                    style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'})
+             ])
+
+app.layout = html.Div([
+    filters,
+
     dbc.Card(
         dbc.CardBody([
             dbc.Row([
@@ -103,33 +125,8 @@ app.layout = html.Div([
                 ], width=3),
             ], align='center'), 
             html.Br(),
-            dbc.Row([
-                dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(id = 'Age-Plot',
-                                                figure={}
-                                ) 
-                            ])
-                        ),  
-                    ])
-                ], width={"size": 3, "offset": 3}),
-                dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(id = 'Factor-Barplot',
-                                                figure={} 
-                                )
-                            ])
-                        ),  
-                    ])
-                ], width=3),
-                dbc.Col([
-                    drawFigure() 
-                ],  width={"size": 3, "offset": 6}),
-            ], align='center'), 
+            dbc.Row(id = 'EDA-Row'),
+
             html.Br(),
             dbc.Row([
                 dbc.Col([
@@ -144,16 +141,16 @@ app.layout = html.Div([
 ])
 #callback for top row
 @callback(
-    [Output(component_id='Factor-Barplot', component_property='figure'),
-    Output(component_id='Age-Plot', component_property='figure')],
-    [Input('BP-Filter', 'value')]
+    Output(component_id='EDA-Row', component_property='children'),
+    [Input('BP-Filter', 'value'),
+     Input('Sex-Filter', 'value'),
+     Input('Anaemia-Filter', 'value')]
 )
-def update_output_div(bp):
+def update_output_div(bp, sex, anaemia):
 
     #Making copy of DF
     filtered_df = df1
-
-    bp_list = []
+    bp_list, sex_list,anaemia_list  = [], [], []
 
     #Filtering for blood pressure
     if bp== "all_values":
@@ -161,17 +158,60 @@ def update_output_div(bp):
     else:
         bp_list = [bp]
 
+    #Filtering for sex
+    if sex== "all_values":
+        sex_list = filtered_df['sex'].drop_duplicates()
+    else:
+        sex_list = [sex]
+    
+    #Filtering for Anaemia
+    if anaemia== "all_values":
+        anaemia_list = filtered_df['anaemia'].drop_duplicates()
+    else:
+        anaemia_list = [anaemia]
+
 
     
     #Applying filters to dataframe
-    filtered_df = filtered_df[(filtered_df['high_blood_pressure'].isin(bp_list))]
+    filtered_df = filtered_df[(filtered_df['high_blood_pressure'].isin(bp_list)) &
+                              (filtered_df['sex'].isin(sex_list)) &
+                               (filtered_df['anaemia'].isin(anaemia_list))]
 
     factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes')
-                            
-    
     age_fig = px.scatter(filtered_df,
                                       x="age", y="platelets", color = "DEATH_EVENT", title = "Scatterplot")
 
-    return factor_fig, age_fig
+    return dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(figure=factor_fig.update_layout(
+                                        template='plotly_dark',
+                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
+                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
+                                    )
+                                ) 
+                            ])
+                        ),  
+                    ])
+                ], width={"size": 3, "offset": 3}),
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(figure=age_fig.update_layout(
+                                        template='plotly_dark',
+                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
+                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
+                                    )
+                                )
+                            ])
+                        ),  
+                    ])
+                ])
+            ], align='center')
+
+
 # Run app and display result inline in the notebook
 app.run_server()
