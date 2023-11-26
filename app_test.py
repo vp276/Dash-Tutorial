@@ -51,17 +51,40 @@ colors = {'background': '#A5D8DD',
 # Initialize the app
 dash_app = Dash(__name__)
 app = dash_app.server
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "bottom": 0,
+    "width": "16rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
+}
+sidebar = html.Div(
+    [
+        html.H2("Sidebar", className="display-4"),
+        html.Hr(),
+        html.P(
+            "A simple sidebar layout with navigation links", className="lead"
+        ),
+        dbc.Nav(
+            [
+                dbc.NavLink("Home", href="/", active="exact"),
+                dbc.NavLink("Page 1", href="/page-1", active="exact"),
+                dbc.NavLink("Page 2", href="/page-2", active="exact"),
+            ],
+            vertical=True,
+            pills=True,
+        ),
+    ],
+    style=SIDEBAR_STYLE
+)
 
+filters = dbc.Row([
+                html.Div(children= [
+                html.H1('Heart Failure Prediction'),
+                dcc.Markdown('A comprehensive tool for examining factors impacting heart failure'),
 
-# App layout
-dash_app.layout = html.Div(style={'backgroundColor': colors['background']}, 
-    children =[
-        html.Div(children= [
-             html.H1('Heart Failure Prediction'),
-             dcc.Markdown('A comprehensive tool for examining factors impacting heart failure'),
-            
-            #Filters
-             html.Div(children = [ 
                 html.Label('Blood Pressure'),
                 dcc.Dropdown(
                     id = 'BP-Filter',
@@ -81,49 +104,11 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
                     id = 'Anaemia-Filter',
                     options = [{"label": i, "value": i} for i in df['anaemia'].drop_duplicates()] + 
                                 [{"label": "Select All", "value": "all_values"}],
-                    value = "all_values")
-             ],style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'}),
+                    value = "all_values")],
+                    style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'})
+             ])
 
-            #First row of graphs
-            html.Div([
-
-                #First column
-                html.Div(children = [
-
-                    dcc.Graph(id = 'Factor-Barplot',
-                            figure={})
-                    ],style={'width': '49%', 'display': 'inline-block'}),
-
-                #Second column
-                html.Div([
-                    dcc.Graph(id = 'Age-Plot',
-                            figure={})
-                ],style={'width': '49%', 'display': 'inline-block'})
-
-
-            ], className = 'row'),
-
-            html.Br(),
-            #Second row of graphs
-            html.Div([
-
-                #First column
-                html.Div(children = [
-                    dcc.Graph(id = 'confusion-matrix',
-                            figure={})
-                    ],style={'width': '49%', 'display': 'inline-block'}),
-
-                #Second column
-                html.Div([
-                    dcc.Graph(id = 'feature-importance',
-                            figure={})
-                ],style={'width': '49%', 'display': 'inline-block'})
-
-
-            ], className = 'row'),
-            html.Br(),
-
-            html.Div([
+sources = dbc.Row([
                 html.H3('Data Sources:'),
                 html.Div([
                     html.Div(children = [
@@ -138,7 +123,49 @@ dash_app.layout = html.Div(style={'backgroundColor': colors['background']},
                 )
                 ])
              ])
-        ])
+def drawFigure(id_name):
+    return  html.Div([
+        dbc.Card(
+            dbc.CardBody([
+                dcc.Graph(id = id_name,
+                                figure={} 
+                ) 
+            ])
+        ),  
+    ])
+# App layout
+dash_app.layout = html.Div([
+            filters,
+            #First row of graphs
+
+            dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(id = 'Factor-Barplot',
+                                                figure={}          
+                                ) 
+                            ])
+                        ),  
+                    ])
+                    ],width=3
+                ),
+
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(id = 'Age-Plot',
+                                                figure={} 
+                                ) 
+                            ])
+                        ),  
+                    ])
+                    ],width=3
+                )
+                
+            ])              
 ])
 
 
