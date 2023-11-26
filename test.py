@@ -60,34 +60,33 @@ X_cols = df1.drop(columns = 'DEATH_EVENT')
 # Build App
 app = Dash(external_stylesheets=[dbc.themes.SLATE])
 SIDEBAR_STYLE = {
-    "position": "fixed",
     "top": 0,
     "left": 0,
-    "bottom": 0,
     "width": "16rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "background-color": "#f8f9fa"
 }
-sidebar = html.Div(
-    [
-        html.H2("Sidebar", className="display-4"),
-        html.Hr(),
-        html.P(
-            "A simple sidebar layout with navigation links", className="lead"
-        ),
-        dbc.Nav(
-            [
-                dbc.NavLink("Home", href="/", active="exact"),
-                dbc.NavLink("Page 1", href="/page-1", active="exact"),
-                dbc.NavLink("Page 2", href="/page-2", active="exact"),
-            ],
-            vertical=True,
-            pills=True,
-        ),
-    ],
-    style=SIDEBAR_STYLE
-)
-filters = dbc.Row([
+sidebar = html.Div(children = [
+            html.H2("Sidebar", className="display-4"),
+            html.Hr(),
+            html.P(
+                "A simple sidebar layout with navigation links", className="lead"
+            ),
+            dbc.Nav(
+                [
+                    dbc.NavLink("Home", href="/", active="exact"),
+                    dbc.NavLink("Page 1", href="/page-1", active="exact"),
+                    dbc.NavLink("Page 2", href="/page-2", active="exact"),
+                ],
+                vertical=True,
+                pills=True,
+            ),
+        ],
+        style=SIDEBAR_STYLE
+    )
+
+filters = html.Div([
+            dbc.Row([
                 html.Div(children= [
                 html.H1('Heart Failure Prediction'),
                 dcc.Markdown('A comprehensive tool for examining factors impacting heart failure'),
@@ -111,37 +110,43 @@ filters = dbc.Row([
                     id = 'Anaemia-Filter',
                     options = [{"label": i, "value": i} for i in df1['anaemia'].drop_duplicates()] + 
                                 [{"label": "Select All", "value": "all_values"}],
-                    value = "all_values")],
-                    style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top'})
+                    value = "all_values")])
              ])
-
-app.layout = html.Div([
-    filters,
-
-    dbc.Card(
-        dbc.CardBody([
-            dbc.Row([
-                dbc.Col([
-                    drawText()
-                ], width=3),
-                dbc.Col([
-                    drawText()
-                ], width=3),
-                dbc.Col([
-                    drawText()
-                ], width=3),
-                dbc.Col([
-                    drawText()
-                ], width=3),
-            ], align='center'), 
-            html.Br(),
-            dbc.Row(id = 'EDA-Row'),
-
-            html.Br(),
-            dbc.Row(id = 'ML-Row'),      
-        ]), color = 'dark'
-    )
 ])
+
+app.layout = html.Div(children = [
+
+    sidebar,
+    html.Div([
+        filters,
+    
+        html.Div([
+            dbc.Card(
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            drawText()
+                        ], width=3),
+                        dbc.Col([
+                            drawText()
+                        ], width=3),
+                        dbc.Col([
+                            drawText()
+                        ], width=3),
+                        dbc.Col([
+                            drawText()
+                        ], width=3),
+                    ]), 
+                    html.Br(),
+                    dbc.Row(id = 'EDA-Row'),
+
+                    html.Br(),
+                    dbc.Row(id = 'ML-Row'),      
+                ]), color = 'dark'
+            )
+        ])
+    ])
+],style={'display': 'inline-block', 'width':'100%'})
 #callback for top row
 @callback(
     Output(component_id='EDA-Row', component_property='children'),
@@ -198,7 +203,7 @@ def update_output_div(bp, sex, anaemia):
                             ])
                         ),  
                     ])
-                ], width={"size": 3, "offset": 3}),
+                ], width={"size": 3, "offset": 0}),
                 dbc.Col([
                     html.Div([
                         dbc.Card(
@@ -213,7 +218,7 @@ def update_output_div(bp, sex, anaemia):
                         ),  
                     ])
                 ])
-            ], align='center')
+            ])
 
 #callback for second row
 @callback(
@@ -258,7 +263,7 @@ def update_model(value):
                             ])
                         ),  
                     ])
-                ], width={"size": 3, "offset": 3}),
+                ], width={"size": 3, "offset": 0}),
                 dbc.Col([
                     html.Div([
                         dbc.Card(
@@ -273,7 +278,7 @@ def update_model(value):
                         ),  
                     ])
                 ])
-            ], align='center')
+            ])
 
 # Run app and display result inline in the notebook
 app.run_server()
