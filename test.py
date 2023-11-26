@@ -60,29 +60,55 @@ X_cols = df1.drop(columns = 'DEATH_EVENT')
 # Build App
 app = Dash(external_stylesheets=[dbc.themes.SLATE])
 SIDEBAR_STYLE = {
+    "position": "fixed",
     "top": 0,
     "left": 0,
-    "width": "16rem",
+    "bottom": 0,
+    "width": "18rem",
     "padding": "2rem 1rem",
-    "background-color": "#f8f9fa"
+    "background-color": "#f8f9fa",
+    "display":"inline-block"
+}
+
+CONTENT_STYLE = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+    "display":"inline-block",
+    "width": "100%"
+}
+FILTER_STYLE = {"width": "50%"
+    
 }
 sidebar = html.Div(children = [
-            html.H2("Sidebar", className="display-4"),
+            html.H2("Description", className="display-4"),
             html.Hr(),
             html.P(
-                "A simple sidebar layout with navigation links", className="lead"
+                "Tutorial project detailing how to develop a basic front end application exploring the factors influencing heart failure", className="lead"
             ),
-            dbc.Nav(
-                [
-                    dbc.NavLink("Home", href="/", active="exact"),
-                    dbc.NavLink("Page 1", href="/page-1", active="exact"),
-                    dbc.NavLink("Page 2", href="/page-2", active="exact"),
+            html.H3("Model"
+            ),
+            html.P(
+                "This project uses a Random Forest Classifier to predict heart failure based on 12 independent variables.", className="lead"
+            ),
+
+            html.H3("Code"
+            ),
+            html.P(
+                "The complete code for this project is available on github.", className="lead"
+            ),
+            html.A(
+                href="https://github.com/pinstripezebra/Dash-Tutorial",
+                children=[
+                    html.Img(
+                        alt="Link to Github",
+                        src="github_logo.png",
+                    )
                 ],
-                vertical=True,
-                pills=True,
-            ),
-        ],
-        style=SIDEBAR_STYLE
+                style = {'color':'black'}
+            )
+
+        ], style=SIDEBAR_STYLE
     )
 
 filters = html.Div([
@@ -112,7 +138,7 @@ filters = html.Div([
                                 [{"label": "Select All", "value": "all_values"}],
                     value = "all_values")])
              ])
-])
+], style = FILTER_STYLE)
 
 app.layout = html.Div(children = [
 
@@ -145,8 +171,8 @@ app.layout = html.Div(children = [
                 ]), color = 'dark'
             )
         ])
-    ])
-],style={'display': 'inline-block', 'width':'100%'})
+    ],style = CONTENT_STYLE)
+])
 #callback for top row
 @callback(
     Output(component_id='EDA-Row', component_property='children'),
