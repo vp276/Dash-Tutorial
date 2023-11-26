@@ -3,6 +3,13 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 import os 
+import numpy as np
+
+#For modeling
+from sklearn.metrics import confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV
 
 #loading Dataset
 base_path = os.path.dirname(__file__)
@@ -10,26 +17,6 @@ file_name = 'heart_failure_clinical_records_dataset.csv'
 total_path = base_path + '\\Data\\' + file_name
 df = pd.read_csv(total_path)
 
-# Iris bar figure
-def drawFigure():
-    return  html.Div([
-        dbc.Card(
-            dbc.CardBody([
-                dcc.Graph(
-                    figure=px.bar(
-                        df, x="sepal_width", y="sepal_length", color="species"
-                    ).update_layout(
-                        template='plotly_dark',
-                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
-                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
-                    ),
-                    config={
-                        'displayModeBar': False
-                    }
-                ) 
-            ])
-        ),  
-    ])
 
 # Text field
 def drawText():
@@ -46,6 +33,29 @@ def drawText():
 # Data
 df = px.data.iris()
 df1 = pd.read_csv(total_path)
+
+#Defining function for training ml model
+def train_model(df):
+
+    X, y = df.drop(columns = ['DEATH_EVENT']), df['DEATH_EVENT']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+    #Defining parameters for gridsearch
+    parameters = {'max_depth':[2, 4, 6]}
+
+    #Training
+    clf = RandomForestClassifier(max_depth=2, random_state=0)
+    clf.fit(X_train, y_train)
+
+    #Predicting and making confusion matrix
+    y_pred = clf.predict(X_test)
+    cmatrix = confusion_matrix(y_test, y_pred)
+
+    return cmatrix, clf
+
+#Training model
+cmatrix, model = train_model(df1)
+X_cols = df1.drop(columns = 'DEATH_EVENT')
 
 # Build App
 app = Dash(external_stylesheets=[dbc.themes.SLATE])
@@ -128,14 +138,7 @@ app.layout = html.Div([
             dbc.Row(id = 'EDA-Row'),
 
             html.Br(),
-            dbc.Row([
-                dbc.Col([
-                    drawFigure()
-                ], width=9),
-                dbc.Col([
-                    drawFigure()
-                ], width=3),
-            ], align='center'),      
+            dbc.Row(id = 'ML-Row'),      
         ]), color = 'dark'
     )
 ])
@@ -212,6 +215,65 @@ def update_output_div(bp, sex, anaemia):
                 ])
             ], align='center')
 
+#callback for second row
+@callback(
+    Output(component_id='ML-Row', component_property='children'),
+    Input('Sex-Filter', 'value')
+)
+def update_model(value):
+
+    #Making copy of df
+    confusion = cmatrix
+    model_copy = model
+    x_copy = X_cols
+
+    #Aggregating confusion dataframe and plotting
+    confusion_fig = px.imshow(confusion, 
+                              labels=dict(x="Predicted Value", 
+                                y="True Value", color="Prediction"),
+                                aspect="auto",
+                                text_auto=True,
+                                title = "Confusion Matrix - Predicted vs Actual Values, Train set")
+    
+    #Calculating feature imporance
+    importances = model_copy.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in model_copy.estimators_], axis=0)
+    df_importance = pd.DataFrame(list(zip(x_copy, importances, std)), 
+                                 columns = ['Feature Name','Importance', 'Std'])
+    #importances.head
+    feature_fig =  px.bar(df_importance, x='Feature Name', y='Importance',
+                          title = 'Feature Importance')
+
+    return dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(figure=feature_fig.update_layout(
+                                        template='plotly_dark',
+                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
+                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
+                                    )
+                                ) 
+                            ])
+                        ),  
+                    ])
+                ], width={"size": 3, "offset": 3}),
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                dcc.Graph(figure=confusion_fig.update_layout(
+                                        template='plotly_dark',
+                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
+                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
+                                    )
+                                )
+                            ])
+                        ),  
+                    ])
+                ])
+            ], align='center')
 
 # Run app and display result inline in the notebook
 app.run_server()
