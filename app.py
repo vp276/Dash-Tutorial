@@ -207,16 +207,12 @@ def update_model(value):
     x_copy = X_cols
 
     #Aggregating confusion dataframe and plotting
-    y_true = confusion[:,0]
-    y_pred = confusion[:,1]
-    agg_confusion = confusion_matrix(y_true, y_pred)
-    #print(y_true)
-    confusion_fig = px.imshow(agg_confusion, 
+    confusion_fig = px.imshow(confusion, 
                               labels=dict(x="Predicted Value", 
                                 y="True Value", color="Prediction"),
                                 aspect="auto",
                                 text_auto=True,
-                                title = "Confusion Matrix - Predicted vs Actual Values")
+                                title = "Confusion Matrix - Predicted vs Actual Values, Train set")
     
     #Calculating feature imporance
     importances = model_copy.feature_importances_
@@ -226,7 +222,6 @@ def update_model(value):
     #importances.head
     feature_fig =  px.bar(df_importance, x='Feature Name', y='Importance',
                           title = 'Feature Importance')
-
 
     return confusion_fig, feature_fig
 
