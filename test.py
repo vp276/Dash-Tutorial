@@ -140,6 +140,28 @@ filters = html.Div([
              ])
 ], style = FILTER_STYLE)
 
+sources = html.Div([
+                html.H3('Data Sources:'),
+                html.Div([
+                    html.Div(children = [
+                        html.Div([
+                            dcc.Markdown("""Data Description: This dataset contains 12 features that 
+                                         can be used to predict mortality by heart failure with each row representing 
+                                         a separate patient, the response variable is DEATH_EVENT.""")
+                        ]),
+                        html.Div([
+                            html.A("Dataset available on Kaggle", 
+                                   href='https://www.kaggle.com/datasets/andrewmvd/heart-failure-clinical-data?select=heart_failure_clinical_records_dataset.csv', target="_blank")
+                        ], style={'display': 'inline-block'})
+                    ]),
+
+                html.H3('Citation'),
+                dcc.Markdown(
+                """Davide Chicco, Giuseppe Jurman: Machine learning can predict survival 
+                of patients with heart failure from serum creatinine and ejection fraction alone. 
+                BMC Medical Informatics and Decision Making 20, 16 (2020)""")
+                ])
+             ])
 app.layout = html.Div(children = [
 
     sidebar,
@@ -167,7 +189,8 @@ app.layout = html.Div(children = [
                     dbc.Row(id = 'EDA-Row'),
 
                     html.Br(),
-                    dbc.Row(id = 'ML-Row'),      
+                    dbc.Row(id = 'ML-Row'), 
+                    sources     
                 ]), color = 'dark'
             )
         ])
