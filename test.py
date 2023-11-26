@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, callback,Input, Output
+from dash import Dash, dcc, html, callback,Input, Output,dash_table
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
@@ -77,7 +77,7 @@ CONTENT_STYLE = {
     "display":"inline-block",
     "width": "100%"
 }
-FILTER_STYLE = {"width": "50%"
+FILTER_STYLE = {"width": "30%"
     
 }
 sidebar = html.Div(children = [
@@ -186,10 +186,10 @@ app.layout = html.Div(children = [
                         ], width=3),
                     ]), 
                     html.Br(),
-                    dbc.Row(id = 'EDA-Row'),
+                    dbc.Row(id = 'ML-Row'),
 
                     html.Br(),
-                    dbc.Row(id = 'ML-Row'), 
+                    dbc.Row(id = 'EDA-Row'), 
                     sources     
                 ]), color = 'dark'
             )
@@ -237,6 +237,20 @@ def update_output_div(bp, sex, anaemia):
     factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes')
     age_fig = px.scatter(filtered_df,
                                       x="age", y="platelets", color = "DEATH_EVENT", title = "Scatterplot")
+    
+    my_datatable = dash_table.DataTable(data = filtered_df.to_dict('records'), 
+                                        columns = [{"name": i, "id": i} for i in filtered_df.columns],
+                                        page_size=10,
+                                        style_header={
+                                            'backgroundColor': 'rgb(30, 30, 30)',
+                                            'color': 'white'
+                                        },
+                                        style_data={
+                                            'backgroundColor': 'rgb(50, 50, 50)',
+                                            'color': 'white'
+                                        },
+                                        style_table={'overflowX': 'scroll'},
+                                    )
 
     return dbc.Row([
                 dbc.Col([
@@ -266,8 +280,19 @@ def update_output_div(bp, sex, anaemia):
                             ])
                         ),  
                     ])
-                ])
+                ],width={"size": 3}),
+                dbc.Col([
+                    html.Div([
+                        dbc.Card(
+                            dbc.CardBody([
+                                my_datatable
+                                ]) 
+
+                        )
+                    ])
+                ], width={"size": 5}),
             ])
+
 
 #callback for second row
 @callback(
@@ -312,7 +337,7 @@ def update_model(value):
                             ])
                         ),  
                     ])
-                ], width={"size": 3, "offset": 0}),
+                ], width={"size": 5}),
                 dbc.Col([
                     html.Div([
                         dbc.Card(
@@ -326,7 +351,7 @@ def update_model(value):
                             ])
                         ),  
                     ])
-                ])
+                ],width={"size": 3})
             ])
 
 # Run app and display result inline in the notebook
