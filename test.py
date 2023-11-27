@@ -41,6 +41,7 @@ def train_model(df):
     return cmatrix, clf
 
 def filter_dataframe(input_df, var1, var2, var3):
+
     bp_list, sex_list,anaemia_list  = [], [], []
 
     #Filtering for blood pressure
@@ -68,6 +69,33 @@ def filter_dataframe(input_df, var1, var2, var3):
     
     return input_df
 
+def draw_Text(input_text):
+
+    return html.Div([
+            dbc.Card(
+                dbc.CardBody([
+                        html.Div([
+                            html.H2(input_text),
+                        ], style={'textAlign': 'center'}) 
+                ])
+            ),
+        ])
+
+def draw_Image(input_figure):
+
+    return html.Div([
+            dbc.Card(
+                dbc.CardBody([
+                    dcc.Graph(figure=input_figure.update_layout(
+                            template='plotly_dark',
+                            plot_bgcolor= 'rgba(0, 0, 0, 0)',
+                            paper_bgcolor= 'rgba(0, 0, 0, 0)',
+                        )
+                    ) 
+                ])
+            ),  
+        ])
+
 #Training model
 cmatrix, model = train_model(df1)
 X_cols = df1.drop(columns = 'DEATH_EVENT')
@@ -92,9 +120,8 @@ CONTENT_STYLE = {
     "display":"inline-block",
     "width": "100%"
 }
-FILTER_STYLE = {"width": "30%"
-    
-}
+FILTER_STYLE = {"width": "30%"}
+
 sidebar = html.Div(children = [
             html.H2("Description", className="display-4"),
             html.Hr(),
@@ -182,17 +209,14 @@ app.layout = html.Div(children = [
     sidebar,
     html.Div([
         filters,
-    
         html.Div([
             dbc.Card(
                 dbc.CardBody([
                     dbc.Row(id = 'kpi-Row'), 
                     html.Br(),
-
-                    dbc.Row(id = 'ML-Row'),
+                    dbc.Row(id = 'EDA-Row'),
                     html.Br(),
-
-                    dbc.Row(id = 'EDA-Row'), 
+                    dbc.Row(id = 'ML-Row'), 
                     sources     
                 ]), color = 'dark'
             )
@@ -213,9 +237,8 @@ def update_output_div(bp, sex, anaemia):
     filtered_df = filter_dataframe(filtered_df, bp, sex, anaemia)
 
     #Creating figures
-    factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes')
-    age_fig = px.scatter(filtered_df,
-                                      x="age", y="platelets", color = "DEATH_EVENT", title = "Scatterplot")
+    factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes', title = "Age vs. Diabetes")
+    age_fig = px.scatter(filtered_df, x="age", y="platelets", color = "DEATH_EVENT", title = "Age and Platelets vs. Death")
     
     my_datatable = dash_table.DataTable(data = filtered_df.to_dict('records'), 
                                         columns = [{"name": i, "id": i} for i in filtered_df.columns],
@@ -233,32 +256,10 @@ def update_output_div(bp, sex, anaemia):
 
     return dbc.Row([
                 dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(figure=factor_fig.update_layout(
-                                        template='plotly_dark',
-                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
-                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
-                                    )
-                                ) 
-                            ])
-                        ),  
-                    ])
+                    draw_Image(factor_fig)
                 ], width={"size": 3, "offset": 0}),
                 dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(figure=age_fig.update_layout(
-                                        template='plotly_dark',
-                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
-                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
-                                    )
-                                )
-                            ])
-                        ),  
-                    ])
+                    draw_Image(age_fig)
                 ],width={"size": 3}),
                 dbc.Col([
                     html.Div([
@@ -266,7 +267,6 @@ def update_output_div(bp, sex, anaemia):
                             dbc.CardBody([
                                 my_datatable
                                 ]) 
-
                         )
                     ])
                 ], width={"size": 5}),
@@ -297,39 +297,18 @@ def update_model(value):
     importances = model_copy.feature_importances_
     std = np.std([tree.feature_importances_ for tree in model_copy.estimators_], axis=0)
     df_importance = pd.DataFrame(list(zip(x_copy, importances, std)), 
-                                 columns = ['Feature Name','Importance', 'Std'])
+                                 columns = ['Feature Name','Importance', 'Std']).sort_values(by = ['Importance'], 
+                                                                                             ascending=False)
     #importances.head
     feature_fig =  px.bar(df_importance, x='Feature Name', y='Importance',
                           title = 'Feature Importance')
 
     return dbc.Row([
                 dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(figure=feature_fig.update_layout(
-                                        template='plotly_dark',
-                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
-                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
-                                    )
-                                ) 
-                            ])
-                        ),  
-                    ])
+                    draw_Image(feature_fig)
                 ], width={"size": 5}),
                 dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                dcc.Graph(figure=confusion_fig.update_layout(
-                                        template='plotly_dark',
-                                        plot_bgcolor= 'rgba(0, 0, 0, 0)',
-                                        paper_bgcolor= 'rgba(0, 0, 0, 0)',
-                                    )
-                                )
-                            ])
-                        ),  
-                    ])
+                    draw_Image(confusion_fig)
                 ],width={"size": 3})
             ])
 
@@ -352,37 +331,13 @@ def update_kpi(bp, sex, anaemia):
     
     return dbc.Row([
                         dbc.Col([
-                                html.Div([
-                                    dbc.Card(
-                                        dbc.CardBody([
-                                            html.Div([
-                                                html.H2("Observations: " + str(observation_count)),
-                                            ], style={'textAlign': 'center'}) 
-                                        ])
-                                    ),
-                                ])
+                                draw_Text("Observations: " + str(observation_count))
                         ], width=3),
                         dbc.Col([
-                            html.Div([
-                                    dbc.Card(
-                                        dbc.CardBody([
-                                            html.Div([
-                                                html.H2("Death Count: " + str(death_count)),
-                                            ], style={'textAlign': 'center'}) 
-                                        ])
-                                    ),
-                                ])
+                            draw_Text("Death Count: " + str(death_count))
                         ], width=3),
                         dbc.Col([
-                            html.Div([
-                                    dbc.Card(
-                                        dbc.CardBody([
-                                            html.Div([
-                                                html.H2("Survival Count: " + str(no_death_count)),
-                                            ], style={'textAlign': 'center'}) 
-                                        ])
-                                    ),
-                                ])
+                            draw_Text("Survival Count: " + str(no_death_count))
                         ], width=3),
                     ])
 
