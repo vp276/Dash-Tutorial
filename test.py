@@ -17,19 +17,6 @@ file_name = 'heart_failure_clinical_records_dataset.csv'
 total_path = base_path + '\\Data\\' + file_name
 df = pd.read_csv(total_path)
 
-
-# Text field
-def drawText():
-    return html.Div([
-        dbc.Card(
-            dbc.CardBody([
-                html.Div([
-                    html.H2("Text"),
-                ], style={'textAlign': 'center'}) 
-            ])
-        ),
-    ])
-
 # Data
 df = px.data.iris()
 df1 = pd.read_csv(total_path)
@@ -52,6 +39,34 @@ def train_model(df):
     cmatrix = confusion_matrix(y_test, y_pred)
 
     return cmatrix, clf
+
+def filter_dataframe(input_df, var1, var2, var3):
+    bp_list, sex_list,anaemia_list  = [], [], []
+
+    #Filtering for blood pressure
+    if var1== "all_values":
+        bp_list = input_df['high_blood_pressure'].drop_duplicates()
+    else:
+        bp_list = [var1]
+
+    #Filtering for sex
+    if var2== "all_values":
+        sex_list = input_df['sex'].drop_duplicates()
+    else:
+        sex_list = [var2]
+    
+    #Filtering for Anaemia
+    if var3== "all_values":
+        anaemia_list = input_df['anaemia'].drop_duplicates()
+    else:
+        anaemia_list = [var3]
+    
+    #Applying filters to dataframe
+    input_df = input_df[(input_df['high_blood_pressure'].isin(bp_list)) &
+                              (input_df['sex'].isin(sex_list)) &
+                               (input_df['anaemia'].isin(anaemia_list))]
+    
+    return input_df
 
 #Training model
 cmatrix, model = train_model(df1)
@@ -193,35 +208,11 @@ app.layout = html.Div(children = [
 )
 def update_output_div(bp, sex, anaemia):
 
-    #Making copy of DF
+    #Making copy of DF and filtering
     filtered_df = df1
-    bp_list, sex_list,anaemia_list  = [], [], []
+    filtered_df = filter_dataframe(filtered_df, bp, sex, anaemia)
 
-    #Filtering for blood pressure
-    if bp== "all_values":
-        bp_list = filtered_df['high_blood_pressure'].drop_duplicates()
-    else:
-        bp_list = [bp]
-
-    #Filtering for sex
-    if sex== "all_values":
-        sex_list = filtered_df['sex'].drop_duplicates()
-    else:
-        sex_list = [sex]
-    
-    #Filtering for Anaemia
-    if anaemia== "all_values":
-        anaemia_list = filtered_df['anaemia'].drop_duplicates()
-    else:
-        anaemia_list = [anaemia]
-
-
-    
-    #Applying filters to dataframe
-    filtered_df = filtered_df[(filtered_df['high_blood_pressure'].isin(bp_list)) &
-                              (filtered_df['sex'].isin(sex_list)) &
-                               (filtered_df['anaemia'].isin(anaemia_list))]
-
+    #Creating figures
     factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes')
     age_fig = px.scatter(filtered_df,
                                       x="age", y="platelets", color = "DEATH_EVENT", title = "Scatterplot")
@@ -345,15 +336,20 @@ def update_model(value):
 #callback for kpi row
 @callback(
     Output(component_id='kpi-Row', component_property='children'),
-    Input('Sex-Filter', 'value')
+    [Input('BP-Filter', 'value'),
+     Input('Sex-Filter', 'value'),
+     Input('Anaemia-Filter', 'value')]
 )
-def update_kpi(value):
+def update_kpi(bp, sex, anaemia):
 
+    #Copying and filtering dataframe
     filtered_df = df1
+    filtered_df = filter_dataframe(filtered_df, bp, sex, anaemia)
+
     observation_count = filtered_df.shape[0]
     death_count = filtered_df[filtered_df['DEATH_EVENT']==1].shape[0]
     no_death_count = filtered_df[filtered_df['DEATH_EVENT']==0].shape[0]
-    print(len(filtered_df))
+    
     return dbc.Row([
                         dbc.Col([
                                 html.Div([
