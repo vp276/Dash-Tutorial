@@ -171,24 +171,12 @@ app.layout = html.Div(children = [
         html.Div([
             dbc.Card(
                 dbc.CardBody([
-                    dbc.Row([
-                        dbc.Col([
-                            drawText()
-                        ], width=3),
-                        dbc.Col([
-                            drawText()
-                        ], width=3),
-                        dbc.Col([
-                            drawText()
-                        ], width=3),
-                        dbc.Col([
-                            drawText()
-                        ], width=3),
-                    ]), 
+                    dbc.Row(id = 'kpi-Row'), 
                     html.Br(),
-                    dbc.Row(id = 'ML-Row'),
 
+                    dbc.Row(id = 'ML-Row'),
                     html.Br(),
+
                     dbc.Row(id = 'EDA-Row'), 
                     sources     
                 ]), color = 'dark'
@@ -353,6 +341,54 @@ def update_model(value):
                     ])
                 ],width={"size": 3})
             ])
+
+#callback for kpi row
+@callback(
+    Output(component_id='kpi-Row', component_property='children'),
+    Input('Sex-Filter', 'value')
+)
+def update_kpi(value):
+
+    filtered_df = df1
+    observation_count = filtered_df.shape[0]
+    death_count = filtered_df[filtered_df['DEATH_EVENT']==1].shape[0]
+    no_death_count = filtered_df[filtered_df['DEATH_EVENT']==0].shape[0]
+    print(len(filtered_df))
+    return dbc.Row([
+                        dbc.Col([
+                                html.Div([
+                                    dbc.Card(
+                                        dbc.CardBody([
+                                            html.Div([
+                                                html.H2("Observations: " + str(observation_count)),
+                                            ], style={'textAlign': 'center'}) 
+                                        ])
+                                    ),
+                                ])
+                        ], width=3),
+                        dbc.Col([
+                            html.Div([
+                                    dbc.Card(
+                                        dbc.CardBody([
+                                            html.Div([
+                                                html.H2("Death Count: " + str(death_count)),
+                                            ], style={'textAlign': 'center'}) 
+                                        ])
+                                    ),
+                                ])
+                        ], width=3),
+                        dbc.Col([
+                            html.Div([
+                                    dbc.Card(
+                                        dbc.CardBody([
+                                            html.Div([
+                                                html.H2("Survival Count: " + str(no_death_count)),
+                                            ], style={'textAlign': 'center'}) 
+                                        ])
+                                    ),
+                                ])
+                        ], width=3),
+                    ])
 
 # Run app and display result inline in the notebook
 app.run_server()
