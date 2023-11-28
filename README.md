@@ -1,6 +1,6 @@
 ## Overview
 
-This repository contains tutorial code for developing and deploying a dash application - a data app platform using Python.
+This repository contains tutorial code for developing and deploying a dash application - a data app platform using Python. The goal is to provide an example of a well structured application, utilizing a wide variety of dash features, and being easily generalizable to other use cases.
 
 ## Data
 
