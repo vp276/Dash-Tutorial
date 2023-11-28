@@ -9,7 +9,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
+
 
 #loading Dataset
 base_path = os.path.dirname(__file__)
@@ -39,30 +39,25 @@ def train_model(df):
 def filter_dataframe(input_df, var1, var2, var3):
 
     bp_list, sex_list,anaemia_list  = [], [], []
-
     #Filtering for blood pressure
     if var1== "all_values":
         bp_list = input_df['high_blood_pressure'].drop_duplicates()
     else:
         bp_list = [var1]
-
     #Filtering for sex
     if var2== "all_values":
         sex_list = input_df['sex'].drop_duplicates()
     else:
         sex_list = [var2]
-    
     #Filtering for Anaemia
     if var3== "all_values":
         anaemia_list = input_df['anaemia'].drop_duplicates()
     else:
         anaemia_list = [var3]
-    
     #Applying filters to dataframe
     input_df = input_df[(input_df['high_blood_pressure'].isin(bp_list)) &
                               (input_df['sex'].isin(sex_list)) &
                                (input_df['anaemia'].isin(anaemia_list))]
-    
     return input_df
 
 def draw_Text(input_text):
@@ -201,9 +196,8 @@ sources = html.Div([
                 ])
              ])
 app.layout = html.Div(children = [
-
     sidebar,
-    html.Div([
+     html.Div([
         filters,
         html.Div([
             dbc.Card(
@@ -219,6 +213,7 @@ app.layout = html.Div(children = [
         ])
     ],style = CONTENT_STYLE)
 ])
+
 #callback for top row
 @callback(
     Output(component_id='EDA-Row', component_property='children'),
