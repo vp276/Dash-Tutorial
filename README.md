@@ -10,4 +10,6 @@ The data used for this project is the Heart Failure prediction dataset available
 
 The finished dashboard can be seen below, it includes a wide variety of dash components and can be easily modified for other datasets that require multiple graphs, text box's, and filters.
 
+A walkthrough of the code can be found here: https://medium.com/p/e4696599377d
+
 ![Alt text](image.png)
