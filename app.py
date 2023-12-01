@@ -92,7 +92,10 @@ cmatrix, model = train_model(df1)
 X_cols = df1.drop(columns = 'DEATH_EVENT')
 
 # Build App
-app = Dash(external_stylesheets=[dbc.themes.SLATE])
+# Initialize the app
+dash_app = Dash(external_stylesheets=[dbc.themes.SLATE])
+app = dash_app.server
+
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -195,7 +198,7 @@ sources = html.Div([
                 BMC Medical Informatics and Decision Making 20, 16 (2020)""")
                 ])
              ])
-app.layout = html.Div(children = [
+dash_app.layout = html.Div(children = [
     sidebar,
      html.Div([
         filters,
@@ -333,4 +336,6 @@ def update_kpi(bp, sex, anaemia):
                     ])
 
 # Run app and display result inline in the notebook
-app.run_server()
+# Run the app
+if __name__ == '__main__':
+    dash_app.run_server(debug=False)
