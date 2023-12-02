@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'Dash-Tutorial'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C8484E0B84DC41BC970B96AAF350AE34 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C259AE2A84844EE0B310F2A61641D5A8 }}
