@@ -1,6 +1,0 @@
-FROM python
-WORKDIR /app
-COPY . /app
-RUN pip3 install -r requirements.txt
-#Running app with port fowarding
-CMD gunicorn -b 0.0.0.0:90 app:server
