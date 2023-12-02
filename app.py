@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 #loading Dataset
 base_path = os.path.dirname(__file__)
 file_name = 'heart_failure_clinical_records_dataset.csv'
-total_path = base_path + '\\Data\\' + file_name
+total_path = base_path + '//Data//' + file_name
 df1 = pd.read_csv(total_path)
 
 #Defining function for training ml model
