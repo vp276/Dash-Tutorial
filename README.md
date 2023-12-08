@@ -12,4 +12,6 @@ The finished dashboard can be seen below, it includes a wide variety of dash com
 
 A walkthrough of the code can be found here: https://medium.com/p/e4696599377d
 
+## Dashboard
+
 ![Alt text](image.png)
