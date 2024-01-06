@@ -183,6 +183,7 @@ sources = html.Div([
                 BMC Medical Informatics and Decision Making 20, 16 (2020)""")
                 ])
              ])
+
 dash_app.layout = html.Div(children = [
     sidebar,
      html.Div([
@@ -221,20 +222,6 @@ def update_output_div(bp, sex, anaemia):
     age_fig = px.scatter(filtered_df, x="ejection_fraction", y="serum_creatinine", facet_col="high_blood_pressure",
                          color = "DEATH_EVENT", 
                          title = "Ejection Fraction and Creatinine vs. Death")
-    
-    """my_datatable = dash_table.DataTable(data = filtered_df.to_dict('records'), 
-                                        columns = [{"name": i, "id": i} for i in filtered_df.columns],
-                                        page_size=10,
-                                        style_header={
-                                            'backgroundColor': 'rgb(30, 30, 30)',
-                                            'color': 'white'
-                                        },
-                                        style_data={
-                                            'backgroundColor': 'rgb(50, 50, 50)',
-                                            'color': 'white'
-                                        },
-                                        style_table={'overflowX': 'scroll'},
-                                    )"""
     time_fig = px.scatter(filtered_df, x = 'time', y = 'platelets', color = 'DEATH_EVENT',
                               title = 'Time and Platelets vs Death')
 
