@@ -1,3 +1,4 @@
+# For data manipulation, visualization, app
 from dash import Dash, dcc, html, callback,Input, Output,dash_table
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -5,56 +6,40 @@ import pandas as pd
 import os 
 import numpy as np
 
-#For modeling
+# For modeling
 from sklearn.metrics import confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 
-#loading Dataset
+# loading Dataset
 base_path = os.path.dirname(__file__)
-file_name = 'heart_failure_clinical_records_dataset.csv'
-total_path = base_path + '//Data//' + file_name
-df1 = pd.read_csv(total_path)
-
-#Defining function for training ml model
-def train_model(df):
-
-    X, y = df.drop(columns = ['DEATH_EVENT']), df['DEATH_EVENT']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-
-    #Defining parameters for gridsearch
-    parameters = {'max_depth':[2, 4, 6]}
-
-    #Training
-    clf = RandomForestClassifier(max_depth=2, random_state=0)
-    clf.fit(X_train, y_train)
-
-    #Predicting and making confusion matrix
-    y_pred = clf.predict(X_test)
-    cmatrix = confusion_matrix(y_test, y_pred)
-
-    return cmatrix, clf
+file_name = 'heart_failure_clinical_records_dataset,predictions.csv'
+feature_name = 'feature_importance.csv'
+total_path = base_path + '//Data//' 
+df1 = pd.read_csv(total_path + file_name)
+feature_importance = pd.read_csv(total_path + feature_name).sort_values(by = ['Importance'], 
+                                                                                             ascending=False)
 
 def filter_dataframe(input_df, var1, var2, var3):
 
     bp_list, sex_list,anaemia_list  = [], [], []
-    #Filtering for blood pressure
+    # Filtering for blood pressure
     if var1== "all_values":
         bp_list = input_df['high_blood_pressure'].drop_duplicates()
     else:
         bp_list = [var1]
-    #Filtering for sex
+    # Filtering for sex
     if var2== "all_values":
         sex_list = input_df['sex'].drop_duplicates()
     else:
         sex_list = [var2]
-    #Filtering for Anaemia
+    # Filtering for Anaemia
     if var3== "all_values":
         anaemia_list = input_df['anaemia'].drop_duplicates()
     else:
         anaemia_list = [var3]
-    #Applying filters to dataframe
+    # Applying filters to dataframe
     input_df = input_df[(input_df['high_blood_pressure'].isin(bp_list)) &
                               (input_df['sex'].isin(sex_list)) &
                                (input_df['anaemia'].isin(anaemia_list))]
@@ -87,15 +72,17 @@ def draw_Image(input_figure):
             ),  
         ])
 
-#Training model
-cmatrix, model = train_model(df1)
-X_cols = df1.drop(columns = 'DEATH_EVENT')
+# Returning model performance
+cmatrix = confusion_matrix(df1['DEATH_EVENT'], df1['Prediction'])
+#cmatrix, model = train_model(df1)
+#X_cols = df1.drop(columns = 'DEATH_EVENT')
 
-# Build App
-# Initialize the app
+
+# Building and Initializing the app
 dash_app = Dash(external_stylesheets=[dbc.themes.SLATE])
 app = dash_app.server
 
+# Defining component styles
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,
@@ -116,6 +103,7 @@ CONTENT_STYLE = {
 }
 FILTER_STYLE = {"width": "30%"}
 
+# Defining components
 sidebar = html.Div(children = [
             html.H2("Description", className="display-4"),
             html.Hr(),
@@ -217,7 +205,7 @@ dash_app.layout = html.Div(children = [
     ],style = CONTENT_STYLE)
 ])
 
-#callback for top row
+# callback for top row
 @callback(
     Output(component_id='EDA-Row', component_property='children'),
     [Input('BP-Filter', 'value'),
@@ -267,34 +255,28 @@ def update_output_div(bp, sex, anaemia):
             ])
 
 
-#callback for second row
+# callback for second row
 @callback(
     Output(component_id='ML-Row', component_property='children'),
     Input('Sex-Filter', 'value')
 )
 def update_model(value):
 
-    #Making copy of df
+    # Making copy of df
     confusion = cmatrix
-    model_copy = model
-    x_copy = X_cols
+    #x_copy = X_cols
+    f_importance = feature_importance
 
-    #Aggregating confusion dataframe and plotting
+    # Aggregating confusion dataframe and plotting
     confusion_fig = px.imshow(confusion, 
                               labels=dict(x="Predicted Value", 
                                 y="True Value", color="Prediction"),
                                 aspect="auto",
                                 text_auto=True,
-                                title = "Confusion Matrix - Predicted vs Actual Values, Train set")
+                                title = "Confusion Matrix - Predicted vs Actual Values")
     
-    #Calculating feature imporance
-    importances = model_copy.feature_importances_
-    std = np.std([tree.feature_importances_ for tree in model_copy.estimators_], axis=0)
-    df_importance = pd.DataFrame(list(zip(x_copy, importances, std)), 
-                                 columns = ['Feature Name','Importance', 'Std']).sort_values(by = ['Importance'], 
-                                                                                             ascending=False)
-    #importances.head
-    feature_fig =  px.bar(df_importance, x='Feature Name', y='Importance',
+    # Graphing feature importance
+    feature_fig =  px.bar(f_importance, x='Feature Name', y='Importance',
                           title = 'Feature Importance')
 
     return dbc.Row([
@@ -306,7 +288,7 @@ def update_model(value):
                 ],width={"size": 3})
             ])
 
-#callback for kpi row
+# callback for kpi row
 @callback(
     Output(component_id='kpi-Row', component_property='children'),
     [Input('BP-Filter', 'value'),
@@ -315,7 +297,7 @@ def update_model(value):
 )
 def update_kpi(bp, sex, anaemia):
 
-    #Copying and filtering dataframe
+    # Copying and filtering dataframe
     filtered_df = df1
     filtered_df = filter_dataframe(filtered_df, bp, sex, anaemia)
 
@@ -335,7 +317,6 @@ def update_kpi(bp, sex, anaemia):
                         ], width=3),
                     ])
 
-# Run app and display result inline in the notebook
-# Run the app
+# Runing the app
 if __name__ == '__main__':
     dash_app.run_server(debug=False)

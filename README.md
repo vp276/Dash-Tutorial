@@ -6,6 +6,11 @@ This repository contains tutorial code for developing and deploying a dash appli
 
 The data used for this project is the Heart Failure prediction dataset available on kaggle here: https://www.kaggle.com/datasets/andrewmvd/heart-failure-clinical-data
 
+## Components
+
+(1) model.py: Trains ensemble model to predict death event as a factor of input variables. Adds predicted column to heart failure dataset
+(2) app.py: Generates front end dash application to visualize data and handle use inputs
+
 ## Final Product
 
 The finished dashboard can be seen below, it includes a wide variety of dash components and can be easily modified for other datasets that require multiple graphs, text box's, and filters.
