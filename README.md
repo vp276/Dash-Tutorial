@@ -9,7 +9,12 @@ The data used for this project is the Heart Failure prediction dataset available
 ## Components
 
 1. model.py: Trains ensemble model to predict death event as a factor of input variables. Adds predicted column to heart failure dataset
-2. app.py: Generates front end dash application to visualize data and handle use inputs
+2. app.py: Generates front end dash application to visualize data and handle use inputs, contains multiple components:
+
+- Initial Data preprocessing
+- Definition of individual app components; sidebar, main page, headers, etc.
+- Definition of app structure incorporating individual components
+- Callbacks for taking user input
 
 ## Final Product
 

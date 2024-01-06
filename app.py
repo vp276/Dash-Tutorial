@@ -12,7 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
 
-# loading Dataset
+# loading Datasets
 base_path = os.path.dirname(__file__)
 file_name = 'heart_failure_clinical_records_dataset,predictions.csv'
 feature_name = 'feature_importance.csv'
@@ -74,9 +74,6 @@ def draw_Image(input_figure):
 
 # Returning model performance
 cmatrix = confusion_matrix(df1['DEATH_EVENT'], df1['Prediction'])
-#cmatrix, model = train_model(df1)
-#X_cols = df1.drop(columns = 'DEATH_EVENT')
-
 
 # Building and Initializing the app
 dash_app = Dash(external_stylesheets=[dbc.themes.SLATE])
