@@ -1,6 +1,6 @@
 ## Overview
 
-This repository contains tutorial code for developing and deploying a dash application - a data app platform using Python. The goal is to provide an example of a well structured application, utilizing a wide variety of dash features, and being easily generalizable to other use cases.
+This repository contains tutorial code for developing and deploying a dash application for predicting heart failure to Microsoft Azure. The goal is to provide an example of a well structured application, utilizing a wide variety of dash features, and being easily generalizable to other use cases.
 
 ## Data
 
@@ -8,8 +8,8 @@ The data used for this project is the Heart Failure prediction dataset available
 
 ## Components
 
-(1) model.py: Trains ensemble model to predict death event as a factor of input variables. Adds predicted column to heart failure dataset
-(2) app.py: Generates front end dash application to visualize data and handle use inputs
+1. model.py: Trains ensemble model to predict death event as a factor of input variables. Adds predicted column to heart failure dataset
+2. app.py: Generates front end dash application to visualize data and handle use inputs
 
 ## Final Product
 

@@ -219,10 +219,13 @@ def update_output_div(bp, sex, anaemia):
     filtered_df = filter_dataframe(filtered_df, bp, sex, anaemia)
 
     #Creating figures
-    factor_fig = px.histogram(filtered_df, x= 'age', color = 'diabetes', title = "Age vs. Diabetes")
-    age_fig = px.scatter(filtered_df, x="age", y="platelets", color = "DEATH_EVENT", title = "Age and Platelets vs. Death")
+    factor_fig = px.histogram(filtered_df, x= 'age', facet_col="diabetes", color = 'DEATH_EVENT', 
+                              title = "Age and Diabetes vs. Death")
+    age_fig = px.scatter(filtered_df, x="ejection_fraction", y="serum_creatinine", facet_col="high_blood_pressure",
+                         color = "DEATH_EVENT", 
+                         title = "Ejection Fraction and Creatinine vs. Death")
     
-    my_datatable = dash_table.DataTable(data = filtered_df.to_dict('records'), 
+    """my_datatable = dash_table.DataTable(data = filtered_df.to_dict('records'), 
                                         columns = [{"name": i, "id": i} for i in filtered_df.columns],
                                         page_size=10,
                                         style_header={
@@ -234,7 +237,9 @@ def update_output_div(bp, sex, anaemia):
                                             'color': 'white'
                                         },
                                         style_table={'overflowX': 'scroll'},
-                                    )
+                                    )"""
+    time_fig = px.scatter(filtered_df, x = 'time', y = 'platelets', color = 'DEATH_EVENT',
+                              title = 'Time and Platelets vs Death')
 
     return dbc.Row([
                 dbc.Col([
@@ -244,14 +249,8 @@ def update_output_div(bp, sex, anaemia):
                     draw_Image(age_fig)
                 ],width={"size": 3}),
                 dbc.Col([
-                    html.Div([
-                        dbc.Card(
-                            dbc.CardBody([
-                                my_datatable
-                                ]) 
-                        )
-                    ])
-                ], width={"size": 5}),
+                    draw_Image(time_fig)
+                ], width={"size": 3}),
             ])
 
 
